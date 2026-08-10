@@ -2,7 +2,7 @@ use poise::serenity_prelude as serenity;
 
 pub struct MemberCounter {
     member_count: i32,
-    predicate: Box<dyn Fn(&serenity::Member) -> bool>,
+    predicate: Box<dyn Fn(&serenity::Member) -> bool + Send + Sync>,
 }
 
 impl MemberCounter {
