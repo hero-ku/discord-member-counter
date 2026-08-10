@@ -25,9 +25,17 @@ impl MemberCounter {
         }
     }
 
-    pub fn member_updated(&mut self, member: &serenity::Member) {
-        if !(self.predicate)(member) {
+    pub fn member_updated(&mut self, member: &serenity::Member, old_member: &serenity::Member) {
+        if (self.predicate)(member) {
+            self.member_count += 1;
+        }
+
+        if (self.predicate)(old_member) {
             self.member_count -= 1;
         }
+    }
+
+    pub fn get_count(&mut self) -> i32 {
+        self.member_count
     }
 }
