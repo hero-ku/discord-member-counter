@@ -1,13 +1,13 @@
+use crate::{config::Config, counter::MemberCounter};
+use poise::serenity_prelude as serenity;
 use std::sync::Mutex;
 
-use poise::serenity_prelude as serenity;
-
-use crate::counter::MemberCounter;
-
+pub mod config;
 pub mod counter;
 
 struct Data {
     counters: Mutex<Vec<MemberCounter>>,
+    config: Config,
 }
 type Error = Box<dyn std::error::Error + Send + Sync>;
 
@@ -16,6 +16,11 @@ async fn main() {
     dotenvy::dotenv().unwrap();
 
     let token = std::env::var("TOKEN").expect("Failed to start: TOKEN unspecified!");
+
+    let config: Config = std::fs::read("config.toml")
+        .map(|buf| toml::from_slice(&buf).unwrap())
+        .unwrap();
+
     let intents = serenity::GatewayIntents::non_privileged()
         .union(serenity::GatewayIntents::GUILD_MEMBERS)
         .difference(serenity::GatewayIntents::GUILD_SCHEDULED_EVENTS);
@@ -33,6 +38,7 @@ async fn main() {
             Box::pin(async move {
                 Ok(Data {
                     counters: Mutex::new(counters),
+                    config,
                 })
             })
         })
@@ -51,7 +57,27 @@ async fn event_handler(
     _framework: poise::FrameworkContext<'_, Data, Error>,
     data: &Data,
 ) -> Result<(), Error> {
+    let config = &data.config;
+
     match event {
+        serenity::FullEvent::Ready { .. } => {
+            let members = config.guild_id.members(ctx, None, None).await.unwrap();
+
+            let mut counters = data.counters.lock().unwrap();
+            for counter in counters.iter_mut() {
+                counter.refresh_count(&members);
+            }
+
+            // Request the guild members to be sent over in chunks
+            // This automatically populates the cache
+            ctx.shard.chunk_guild(
+                config.guild_id,
+                None,
+                false,
+                serenity::ChunkGuildFilter::None,
+                None,
+            );
+        }
         serenity::FullEvent::GuildMemberAddition { new_member } => {
             let mut counters = data.counters.lock().unwrap();
 
