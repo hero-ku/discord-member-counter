@@ -13,6 +13,8 @@ type Error = Box<dyn std::error::Error + Send + Sync>;
 
 #[tokio::main]
 async fn main() {
+    dotenvy::dotenv().unwrap();
+
     let token = std::env::var("TOKEN").expect("Failed to start: TOKEN unspecified!");
     let intents = serenity::GatewayIntents::non_privileged()
         .union(serenity::GatewayIntents::GUILD_MEMBERS)
