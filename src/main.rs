@@ -1,5 +1,5 @@
 use crate::{config::Config, counter::MemberCounter};
-use poise::serenity_prelude as serenity;
+use poise::serenity_prelude::{self as serenity, GuildId};
 use std::sync::Mutex;
 
 pub mod config;
@@ -7,7 +7,7 @@ pub mod counter;
 
 struct Data {
     counters: Mutex<Vec<MemberCounter>>,
-    config: Config,
+    guild_id: GuildId,
 }
 type Error = Box<dyn std::error::Error + Send + Sync>;
 
@@ -25,7 +25,11 @@ async fn main() {
         .union(serenity::GatewayIntents::GUILD_MEMBERS)
         .difference(serenity::GatewayIntents::GUILD_SCHEDULED_EVENTS);
 
-    let counters = Vec::new();
+    let counters = config
+        .counters
+        .iter()
+        .map(|(_, config)| config.build())
+        .collect();
 
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
@@ -38,7 +42,7 @@ async fn main() {
             Box::pin(async move {
                 Ok(Data {
                     counters: Mutex::new(counters),
-                    config,
+                    guild_id: config.guild_id,
                 })
             })
         })
@@ -57,11 +61,9 @@ async fn event_handler(
     _framework: poise::FrameworkContext<'_, Data, Error>,
     data: &Data,
 ) -> Result<(), Error> {
-    let config = &data.config;
-
     match event {
         serenity::FullEvent::Ready { .. } => {
-            let members = config.guild_id.members(ctx, None, None).await.unwrap();
+            let members = data.guild_id.members(ctx, None, None).await.unwrap();
 
             let mut counters = data.counters.lock().unwrap();
             for counter in counters.iter_mut() {
@@ -71,7 +73,7 @@ async fn event_handler(
             // Request the guild members to be sent over in chunks
             // This automatically populates the cache
             ctx.shard.chunk_guild(
-                config.guild_id,
+                data.guild_id,
                 None,
                 false,
                 serenity::ChunkGuildFilter::None,
