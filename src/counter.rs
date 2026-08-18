@@ -35,6 +35,16 @@ impl MemberCounter {
         }
     }
 
+    pub fn refresh_count(&mut self, members: &[serenity::Member]) {
+        self.member_count = members.iter().fold(0, |acc, member| {
+            if (self.predicate)(member) {
+                acc + 1
+            } else {
+                acc
+            }
+        });
+    }
+
     pub fn get_count(&mut self) -> i32 {
         self.member_count
     }
