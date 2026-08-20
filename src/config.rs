@@ -27,7 +27,7 @@ pub enum CounterType {
 impl CounterConfig {
     pub fn build(&self) -> MemberCounter {
         match &self.counter_type {
-            CounterType::Role { id } => MemberCounter::from_role(*id, vec![]),
+            CounterType::Role { id } => MemberCounter::from_role(*id, self.effects.clone()),
         }
     }
 }
