@@ -18,6 +18,8 @@ impl CounterEffect {
         ctx: std::sync::Arc<serenity::Http>,
         count: u32,
     ) -> Result<(), Error> {
+        println!("we are, updating");
+
         match self {
             CounterEffect::ChannelLabel { channel_id, prompt } => {
                 channel_id

@@ -1,4 +1,4 @@
-use crate::{Error, effect::CounterEffect};
+use crate::effect::CounterEffect;
 use poise::serenity_prelude as serenity;
 
 pub struct MemberCounter {
