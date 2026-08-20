@@ -4,6 +4,7 @@ use std::sync::Mutex;
 
 pub mod config;
 pub mod counter;
+pub mod effect;
 
 struct Data {
     counters: Mutex<Vec<MemberCounter>>,
@@ -67,7 +68,7 @@ async fn event_handler(
 
             let mut counters = data.counters.lock().unwrap();
             for counter in counters.iter_mut() {
-                counter.refresh_count(&members);
+                counter.refresh_count(ctx, &members);
             }
 
             // Request the guild members to be sent over in chunks
@@ -84,7 +85,7 @@ async fn event_handler(
             let mut counters = data.counters.lock().unwrap();
 
             for counter in counters.iter_mut() {
-                counter.member_joined(new_member);
+                counter.member_joined(ctx, new_member);
             }
         }
         serenity::FullEvent::GuildMemberRemoval {
@@ -95,7 +96,7 @@ async fn event_handler(
                 let mut counters = data.counters.lock().unwrap();
 
                 for counter in counters.iter_mut() {
-                    counter.member_left(old_member);
+                    counter.member_left(ctx, old_member);
                 }
             }
         }
@@ -110,7 +111,7 @@ async fn event_handler(
                 let mut counters = data.counters.lock().unwrap();
 
                 for counter in counters.iter_mut() {
-                    counter.member_updated(member, old_member);
+                    counter.member_updated(ctx, member, old_member);
                 }
             }
         }
