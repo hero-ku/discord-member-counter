@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use poise::serenity_prelude::{GuildId, RoleId};
 use serde::{Deserialize, Serialize};
 
-use crate::counter::MemberCounter;
+use crate::{counter::MemberCounter, effect::CounterEffect};
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
@@ -12,16 +12,22 @@ pub struct Config {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct CounterConfig {
+    #[serde(flatten)]
+    counter_type: CounterType,
+    effects: Vec<CounterEffect>,
+}
+
+#[derive(Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
-#[serde()]
-pub enum CounterConfig {
+pub enum CounterType {
     Role { id: RoleId },
 }
 
 impl CounterConfig {
     pub fn build(&self) -> MemberCounter {
-        match self {
-            CounterConfig::Role { id } => MemberCounter::from_role(*id),
+        match &self.counter_type {
+            CounterType::Role { id } => MemberCounter::from_role(*id, vec![]),
         }
     }
 }
