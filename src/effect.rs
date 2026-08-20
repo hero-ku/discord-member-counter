@@ -1,4 +1,3 @@
-use crate::Error;
 use poise::serenity_prelude::{self as serenity, ChannelId};
 
 #[derive(Clone)]
@@ -7,12 +6,8 @@ pub enum CounterEffect {
 }
 
 impl CounterEffect {
-    pub async fn handle_update(
-        &self,
-        ctx: std::sync::Arc<serenity::Http>,
-        count: u32,
-    ) -> Result<(), Error> {
-        match self {
+    pub async fn handle_update(&self, ctx: std::sync::Arc<serenity::Http>, count: u32) {
+        let _ = match self {
             CounterEffect::ChannelLabel(channel_id, prompt) => {
                 channel_id
                     .edit(
@@ -22,7 +17,5 @@ impl CounterEffect {
                     .await
             }
         };
-
-        Ok(())
     }
 }
