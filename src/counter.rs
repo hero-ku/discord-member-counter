@@ -78,7 +78,9 @@ impl MemberCounter {
             let http = ctx.http.clone();
 
             tokio::spawn(async move {
-                let _ = effect.handle_update(http, count).await;
+                if let Err(error) = effect.handle_update(http, count).await {
+                    println!("Error occured during effect: {:?}", error);
+                }
             });
         }
     }
