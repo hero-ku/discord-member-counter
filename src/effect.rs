@@ -1,14 +1,19 @@
 use poise::serenity_prelude::{self as serenity, ChannelId};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "type", rename_all = "lowercase")]
 pub enum CounterEffect {
-    ChannelLabel(ChannelId, String),
+    ChannelLabel {
+        channel_id: ChannelId,
+        prompt: String,
+    },
 }
 
 impl CounterEffect {
     pub async fn handle_update(&self, ctx: std::sync::Arc<serenity::Http>, count: u32) {
         let _ = match self {
-            CounterEffect::ChannelLabel(channel_id, prompt) => {
+            CounterEffect::ChannelLabel { channel_id, prompt } => {
                 channel_id
                     .edit(
                         ctx,
